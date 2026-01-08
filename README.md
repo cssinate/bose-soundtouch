@@ -4,7 +4,7 @@ A JavaScript/TypeScript library for controlling Bose SoundTouch speakers via the
 
 ## Background
 
-On January 7, 2026, Bose announced that cloud support for SoundTouch products will end on May 6, 2026. After this date:
+On January 7, 2026, [Bose announced](https://www.bose.com/soundtouch-end-of-life) that cloud support for SoundTouch products will end on May 6, 2026. After this date:
 
 **What will continue to work:**
 
@@ -21,6 +21,10 @@ On January 7, 2026, Bose announced that cloud support for SoundTouch products wi
 As part of this transition, Bose released their SoundTouch API Documentation to enable independent developers to create their own SoundTouch-compatible tools.
 
 This library provides a clean, TypeScript-friendly interface to control SoundTouch speakers over your local network, ensuring your speakers remain fully functional even after cloud services end.
+
+## Credit
+
+This package is derived from the work done by [captivus](https://github.com/captivus) in creating a [Python library](https://github.com/captivus/bose-soundtouch)
 
 ## Installation
 
