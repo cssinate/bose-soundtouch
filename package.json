@@ -1,6 +1,6 @@
 {
   "name": "bose-soundtouch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A JavaScript/TypeScript library for controlling Bose SoundTouch speakers via the local REST API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,7 +22,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/captivus/bose-soundtouch.git"
+    "url": "https://github.com/cssinate/bose-soundtouch.git"
   },
   "engines": {
     "node": ">=18.0.0"
