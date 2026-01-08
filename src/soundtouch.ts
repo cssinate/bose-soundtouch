@@ -140,12 +140,12 @@ export class SoundTouch {
    * Get device information
    */
   async getInfo(): Promise<DeviceInfo> {
-    const data = await this.get<{ deviceinfo: DeviceInfo }>("/info");
+    const data = await this.get<{ info: DeviceInfo }>("/info");
     // Normalize networkInfo to always be an array
-    if (data.deviceinfo.networkInfo && !Array.isArray(data.deviceinfo.networkInfo)) {
-      data.deviceinfo.networkInfo = [data.deviceinfo.networkInfo];
+    if (data.info.networkInfo && !Array.isArray(data.info.networkInfo)) {
+      data.info.networkInfo = [data.info.networkInfo];
     }
-    return data.deviceinfo;
+    return data.info;
   }
 
   /**
@@ -154,9 +154,10 @@ export class SoundTouch {
   async getCapabilities(): Promise<Capabilities> {
     const data = await this.get<{ capabilities: Capabilities }>("/capabilities");
     // Normalize capabilities array
-    if (data.capabilities.capabilities && !Array.isArray(data.capabilities.capabilities)) {
-      data.capabilities.capabilities = [data.capabilities.capabilities];
+    if (data.capabilities.capability && !Array.isArray(data.capabilities.capability)) {
+      data.capabilities.capability = [data.capabilities.capability];
     }
+    console.log(data.capabilities.capability);
     return data.capabilities;
   }
 

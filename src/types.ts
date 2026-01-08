@@ -54,7 +54,7 @@ export interface Capability {
 }
 
 export interface Capabilities {
-  capabilities: Capability[];
+  capability: Capability[];
 }
 
 export interface ContentItem {

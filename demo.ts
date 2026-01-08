@@ -30,7 +30,7 @@ async function runDemo() {
     // Capabilities
     console.log("=== Capabilities ===");
     const capabilities = await speaker.getCapabilities();
-    capabilities.capabilities.forEach((cap) => {
+    capabilities.capability.forEach((cap) => {
       console.log(`  ${cap.name}: ${cap.value}`);
     });
     console.log();
