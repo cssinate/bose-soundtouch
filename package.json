@@ -1,0 +1,45 @@
+{
+  "name": "bose-soundtouch",
+  "version": "0.1.0",
+  "description": "A JavaScript/TypeScript library for controlling Bose SoundTouch speakers via the local REST API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "demo": "ts-node demo.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "bose",
+    "soundtouch",
+    "speaker",
+    "audio",
+    "rest",
+    "api"
+  ],
+  "author": "Paul Grant",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/captivus/bose-soundtouch.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/xml2js": "^0.4.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}
