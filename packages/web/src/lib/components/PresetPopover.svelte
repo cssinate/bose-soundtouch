@@ -2,38 +2,36 @@
   import { storePreset } from "$lib/api.js";
 
   interface Props {
-    id: string;
-    selectedSpeaker: string | null;
-    item: any;
-    type: "playlist" | "track";
+    contentItem: any;
+    speakerId: string | null;
+    triggerId: string;
   }
 
-  let { id, selectedSpeaker, item, type }: Props = $props();
+  let { contentItem, speakerId, triggerId }: Props = $props();
+  const popoverId = `popover-${triggerId}`;
 
   async function handlePresetClick(event: MouseEvent, slotNumber: number) {
-    if (!selectedSpeaker) return;
+    if (!speakerId) return;
 
-    const contentItem = {
+    const item = {
       source: "SPOTIFY",
-      type: type === "playlist" ? "playlist" : "track",
-      location: item.uri,
+      type: "uri",
+      location: contentItem.uri,
       sourceAccount: "",
-      itemName: item.name,
-      containerArt: type === "playlist" ? item.imageUrl : item.album?.imageUrl || "",
+      itemName: contentItem.name,
+      containerArt: contentItem.imageUrl,
     };
 
     try {
-      await storePreset(selectedSpeaker, slotNumber, contentItem);
+      await storePreset(speakerId, slotNumber, item);
       
-      // Success feedback - could be improved with a toast notification
       const button = event.target as HTMLButtonElement;
       button.textContent = '✓';
       setTimeout(() => {
         button.textContent = String(slotNumber);
       }, 1000);
       
-      // Close the popover after showing success
-      const popover = document.getElementById(id) as HTMLElement;
+      const popover = document.getElementById(popoverId) as HTMLElement;
       if (popover && 'hidePopover' in popover) {
         (popover as any).hidePopover();
       }
@@ -44,7 +42,16 @@
   }
 </script>
 
-<div {id} popover="auto" class="preset-popover">
+<button 
+  id={triggerId}
+  class="icon-btn"
+  popovertarget={popoverId}
+  title="Add to preset"
+>
+  <span class="material-symbols-rounded">bookmark_add</span>
+</button>
+
+<div id={popoverId} popover="auto" class="preset-popover">
   <div class="preset-grid">
     {#each [1, 2, 3, 4, 5, 6] as slot}
       <button 
@@ -58,13 +65,68 @@
 </div>
 
 <style>
+  .icon-btn {
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    anchor-name: --preset-trigger;
+  }
+
+  .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
   .preset-popover {
     padding: 0.75rem;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    margin: 0.25rem 0;
+    
+    /* CSS Anchor Positioning */
+    position-anchor: --preset-trigger;
+    position: absolute;
+    position-try-fallbacks: --top, --bottom, --left, --right;
+    inset: auto;
+    margin: 0;
+  }
+
+  /* Default: below the button */
+  .preset-popover {
+    top: anchor(bottom);
+    left: anchor(center);
+    translate: -50% 0.5rem;
+  }
+
+  /* Fallback positions */
+  @position-try --top {
+    bottom: anchor(top);
+    top: auto;
+    translate: -50% -0.5rem;
+  }
+
+  @position-try --bottom {
+    top: anchor(bottom);
+    bottom: auto;
+    translate: -50% 0.5rem;
+  }
+
+  @position-try --left {
+    right: anchor(left);
+    left: auto;
+    translate: -0.5rem -50%;
+  }
+
+  @position-try --right {
+    left: anchor(right);
+    right: auto;
+    translate: 0.5rem -50%;
   }
 
   .preset-grid {

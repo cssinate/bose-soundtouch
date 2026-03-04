@@ -15,6 +15,7 @@
     selectPreset,
   } from "$lib/api.js";
   import { SpeakerSocket } from "$lib/websocket.js";
+  import { selectedSpeaker } from "$lib/stores.js";
   import type { SpeakerInfo, NowPlaying, Volume, Preset } from "$lib/types.js";
 
   let speakers: SpeakerInfo[] = $state([]);
@@ -55,6 +56,7 @@
     if (selectedId) socket.unsubscribe(selectedId);
 
     selectedId = id;
+    selectedSpeaker.set(id); // Update global store
     socket.subscribe(id);
 
     try {

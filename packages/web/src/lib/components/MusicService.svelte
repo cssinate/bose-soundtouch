@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { getSpeakers } from "$lib/api.js";
   import PresetPopover from "$lib/components/PresetPopover.svelte";
-  import type { SpeakerInfo } from "$lib/types.js";
+  import { selectedSpeaker } from "$lib/stores.js";
   import type { MusicServicePlugin } from "@soundtouch/core";
 
   interface Props {
@@ -13,8 +12,7 @@
 
   let authenticated = $state(false);
   let loading = $state(true);
-  let speakers: SpeakerInfo[] = $state([]);
-  let selectedSpeaker: string | null = $state(null);
+  let speakerId: string | null = $state(null);
   let playlists: any[] = $state([]);
   let selectedPlaylist: any | null = $state(null);
   let tracks: any[] = $state([]);
@@ -24,16 +22,18 @@
   let currentlyPlayingUri: string | null = $state(null);
   let shuffleEnabled = $state(false);
 
+  // Subscribe to selected speaker from global store
+  $effect(() => {
+    const unsubscribe = selectedSpeaker.subscribe(value => {
+      speakerId = value;
+    });
+    return unsubscribe;
+  });
+
   onMount(async () => {
     try {
-      const [status, spks] = await Promise.all([
-        service.api.getStatus(),
-        getSpeakers(),
-      ]);
-
+      const status = await service.api.getStatus();
       authenticated = status.authenticated;
-      speakers = spks;
-      selectedSpeaker = speakers[0]?.id || null;
 
       if (authenticated) {
         await loadPlaylists();
@@ -74,12 +74,12 @@
   }
 
   async function handlePlayPlaylist(playlist: any) {
-    if (!selectedSpeaker) {
+    if (!speakerId) {
       console.error("No speaker selected");
       return;
     }
     try {
-      await service.api.playUri(selectedSpeaker, playlist.uri, {
+      await service.api.playUri(speakerId, playlist.uri, {
         name: playlist.name,
         imageUrl: playlist.imageUrl,
       });
@@ -90,12 +90,12 @@
   }
 
   async function handlePlayTrack(track: any) {
-    if (!selectedSpeaker) {
+    if (!speakerId) {
       console.error("No speaker selected");
       return;
     }
     try {
-      await service.api.playTrack(selectedSpeaker, track.uri, {
+      await service.api.playTrack(speakerId, track.uri, {
         name: track.name,
         imageUrl: track.imageUrl,
       });
@@ -141,23 +141,10 @@
     </div>
   {:else if selectedPlaylist}
     <div class="playlist-details">
-      <div class="top-bar">
-        <button class="back-btn" onclick={handleBack}>
-          <span class="material-symbols-rounded">arrow_back</span>
-          Back to Playlists
-        </button>
-        
-        {#if speakers.length > 0}
-          <div class="speaker-selector">
-            <label for="speaker-select">Speaker:</label>
-            <select id="speaker-select" bind:value={selectedSpeaker}>
-              {#each speakers as speaker}
-                <option value={speaker.id}>{speaker.name}</option>
-              {/each}
-            </select>
-          </div>
-        {/if}
-      </div>
+      <button class="back-btn" onclick={handleBack}>
+        <span class="material-symbols-rounded">arrow_back</span>
+        Back to Playlists
+      </button>
 
       <div class="playlist-header">
         {#if selectedPlaylist.imageUrl}
@@ -197,48 +184,28 @@
             >
               <span class="material-symbols-rounded">play_arrow</span>
             </button>
-            <PresetPopover contentItem={track} speakerId={selectedSpeaker} triggerId="track-{track.id}" />
-            <button
-              class="icon-btn"
-              popovertarget="track-{track.id}"
-              title="Add to preset"
-            >
-              <span class="material-symbols-rounded">bookmark_add</span>
-            </button>
+            <PresetPopover contentItem={track} speakerId={speakerId} triggerId="track-{track.id}" />
           </div>
         {/each}
       </div>
     </div>
   {:else}
     <div class="controls">
-      <div class="top-controls">
-        <div class="view-toggle">
-          <button
-            class="tab-btn"
-            class:active={view === "playlists"}
-            onclick={() => (view = "playlists")}
-          >
-            Playlists
-          </button>
-          <button
-            class="tab-btn"
-            class:active={view === "search"}
-            onclick={() => (view = "search")}
-          >
-            Search
-          </button>
-        </div>
-
-        {#if speakers.length > 0}
-          <div class="speaker-selector">
-            <label for="speaker-select-main">Speaker:</label>
-            <select id="speaker-select-main" bind:value={selectedSpeaker}>
-              {#each speakers as speaker}
-                <option value={speaker.id}>{speaker.name}</option>
-              {/each}
-            </select>
-          </div>
-        {/if}
+      <div class="view-toggle">
+        <button
+          class="tab-btn"
+          class:active={view === "playlists"}
+          onclick={() => (view = "playlists")}
+        >
+          Playlists
+        </button>
+        <button
+          class="tab-btn"
+          class:active={view === "search"}
+          onclick={() => (view = "search")}
+        >
+          Search
+        </button>
       </div>
 
       {#if view === "search"}
@@ -285,14 +252,7 @@
               >
                 <span class="material-symbols-rounded">queue_music</span>
               </button>
-              <PresetPopover contentItem={playlist} speakerId={selectedSpeaker} triggerId="playlist-{playlist.id}" />
-              <button
-                class="icon-btn"
-                popovertarget="playlist-{playlist.id}"
-                title="Add to preset"
-              >
-                <span class="material-symbols-rounded">bookmark_add</span>
-              </button>
+              <PresetPopover contentItem={playlist} speakerId={speakerId} triggerId="playlist-{playlist.id}" />
               <button
                 class="icon-btn"
                 onclick={() => handlePlayPlaylist(playlist)}
