@@ -8,6 +8,7 @@ import {
   NowPlaying,
   Bass,
   Tone,
+  ContentItem,
   PlayStatus,
   KeyValue,
 } from "./types.js";
@@ -212,6 +213,19 @@ export class SoundTouch {
     }
     const key = `PRESET_${presetId}` as KeyValue;
     await this.sendKey(key);
+  }
+
+  async storePreset(presetId: number, contentItem: ContentItem): Promise<void> {
+    if (presetId < 1 || presetId > 6) {
+      throw new Error("Preset ID must be between 1 and 6");
+    }
+    
+    const xml = `<ContentItem source="${contentItem.source}" type="${contentItem.type}" ${contentItem.location ? `location="${contentItem.location}"` : ""} ${contentItem.sourceAccount ? `sourceAccount="${contentItem.sourceAccount}"` : ""} isPresetable="true">
+      ${contentItem.itemName ? `<itemName>${contentItem.itemName}</itemName>` : ""}
+      ${contentItem.containerArt ? `<containerArt>${contentItem.containerArt}</containerArt>` : ""}
+    </ContentItem>`;
+    
+    await this.post(`/setPreset?preset=${presetId}`, xml);
   }
 
   async play(): Promise<void> {
