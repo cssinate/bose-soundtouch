@@ -132,25 +132,40 @@ export const plugin: ServerPlugin = {
         return null;
       }
 
-      if (token.expires_at && Date.now() > token.expires_at * 1000 - 60_000) {
-        if (token.refresh_token) {
-          try {
-            const refreshed = await auth.refreshTokens(token.refresh_token);
-            tokenStore.upsert(
-              "spotify",
-              refreshed.accessToken,
-              refreshed.refreshToken,
-              refreshed.expiresAt,
-              refreshed.scope,
-            );
-            return new SpotifyClient(refreshed.accessToken);
-          } catch {
-            reply.code(401).send({ error: "Token refresh failed" });
-            return null;
-          }
+      // Check if token is expired or will expire soon (within 1 minute)
+      const isExpiredOrExpiring = token.expires_at && Date.now() > (token.expires_at * 1000) - 60_000;
+      
+      if (isExpiredOrExpiring) {
+        if (!token.refresh_token) {
+          reply.code(401).send({ 
+            error: "Token expired",
+            requiresAuth: true,
+            message: "Please reconnect your Spotify account"
+          });
+          return null;
         }
-        reply.code(401).send({ error: "Token expired" });
-        return null;
+
+        try {
+          logger.info("Refreshing expired Spotify token");
+          const refreshed = await auth.refreshTokens(token.refresh_token);
+          tokenStore.upsert(
+            "spotify",
+            refreshed.accessToken,
+            refreshed.refreshToken,
+            refreshed.expiresAt,
+            refreshed.scope,
+          );
+          logger.info("Spotify token refreshed successfully");
+          return new SpotifyClient(refreshed.accessToken);
+        } catch (error) {
+          logger.error("Token refresh failed:", error);
+          reply.code(401).send({ 
+            error: "Token refresh failed",
+            requiresAuth: true,
+            message: "Please reconnect your Spotify account"
+          });
+          return null;
+        }
       }
 
       return new SpotifyClient(token.access_token);

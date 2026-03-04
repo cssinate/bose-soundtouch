@@ -12,6 +12,7 @@
 
   let authenticated = $state(false);
   let loading = $state(true);
+  let authError: string | null = $state(null);
   let speakerId: string | null = $state(null);
   let playlists: any[] = $state([]);
   let selectedPlaylist: any | null = $state(null);
@@ -34,12 +35,14 @@
     try {
       const status = await service.api.getStatus();
       authenticated = status.authenticated;
+      authError = null;
 
       if (authenticated) {
         await loadPlaylists();
       }
     } catch (err) {
       console.error(`Failed to load ${service.metadata.name}:`, err);
+      authError = err instanceof Error ? err.message : "Failed to connect";
     } finally {
       loading = false;
     }
@@ -48,16 +51,26 @@
   async function loadPlaylists() {
     try {
       playlists = await service.api.getPlaylists();
+      authError = null;
     } catch (err) {
       console.error("Failed to load playlists:", err);
+      if (err instanceof Error && err.message.includes("401")) {
+        authError = "Session expired. Please reconnect.";
+        authenticated = false;
+      }
     }
   }
 
   async function loadPlaylistTracks(playlistId: string) {
     try {
       tracks = await service.api.getPlaylistTracks(playlistId);
+      authError = null;
     } catch (err) {
       console.error("Failed to load tracks:", err);
+      if (err instanceof Error && err.message.includes("401")) {
+        authError = "Session expired. Please reconnect.";
+        authenticated = false;
+      }
     }
   }
 
@@ -84,8 +97,15 @@
         imageUrl: playlist.imageUrl,
       });
       currentlyPlayingUri = playlist.uri;
+      authError = null;
     } catch (err) {
       console.error("Failed to play:", err);
+      if (err instanceof Error && err.message.includes("401")) {
+        authError = "Session expired. Please reconnect.";
+        authenticated = false;
+      } else {
+        alert(`Failed to play: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
     }
   }
 
@@ -100,8 +120,15 @@
         imageUrl: track.imageUrl,
       });
       currentlyPlayingUri = track.uri;
+      authError = null;
     } catch (err) {
       console.error("Failed to play track:", err);
+      if (err instanceof Error && err.message.includes("401")) {
+        authError = "Session expired. Please reconnect.";
+        authenticated = false;
+      } else {
+        alert(`Failed to play: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
     }
   }
 
@@ -131,12 +158,15 @@
 <div class="music-service">
   {#if loading}
     <div class="loading">Loading {service.metadata.name}...</div>
-  {:else if !authenticated}
+  {:else if authError || !authenticated}
     <div class="auth-prompt">
       <h2>Connect to {service.metadata.name}</h2>
+      {#if authError}
+        <p class="error-message">{authError}</p>
+      {/if}
       <p>Connect your {service.metadata.name} account to browse and play music on your SoundTouch speakers.</p>
       <a href={service.metadata.authUrl} class="connect-btn">
-        Connect {service.metadata.name}
+        {authError ? 'Reconnect' : 'Connect'} {service.metadata.name}
       </a>
     </div>
   {:else if selectedPlaylist}
@@ -305,6 +335,12 @@
     border-radius: 2rem;
     font-weight: 600;
     margin-top: 2rem;
+  }
+
+  .error-message {
+    color: #ff4444;
+    font-weight: 600;
+    margin-bottom: 1rem;
   }
 
   .controls {
