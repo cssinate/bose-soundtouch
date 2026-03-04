@@ -58,7 +58,6 @@ interface MusicServiceMetadata {
   id: string;           // e.g., "spotify", "deezer"
   name: string;         // e.g., "Spotify", "Deezer"
   authUrl: string;      // e.g., "/auth/spotify"
-  icon?: string;        // e.g., "🎵", "🎶"
 }
 ```
 
@@ -214,7 +213,6 @@ export const yourservice: MusicServicePlugin = {
     id: "yourservice",
     name: "Your Service",
     authUrl: "/auth/yourservice",
-    icon: "🎵",
   },
   api,
 };

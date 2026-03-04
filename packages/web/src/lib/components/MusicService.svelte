@@ -74,8 +74,15 @@
   }
 
   async function handlePlayPlaylist(playlist: any) {
+    if (!selectedSpeaker) {
+      console.error("No speaker selected");
+      return;
+    }
     try {
-      await service.api.playUri(playlist.uri);
+      await service.api.playUri(selectedSpeaker, playlist.uri, {
+        name: playlist.name,
+        imageUrl: playlist.imageUrl,
+      });
       currentlyPlayingUri = playlist.uri;
     } catch (err) {
       console.error("Failed to play:", err);
@@ -83,8 +90,15 @@
   }
 
   async function handlePlayTrack(track: any) {
+    if (!selectedSpeaker) {
+      console.error("No speaker selected");
+      return;
+    }
     try {
-      await service.api.playTrack(track.uri);
+      await service.api.playTrack(selectedSpeaker, track.uri, {
+        name: track.name,
+        imageUrl: track.imageUrl,
+      });
       currentlyPlayingUri = track.uri;
     } catch (err) {
       console.error("Failed to play track:", err);
@@ -127,10 +141,23 @@
     </div>
   {:else if selectedPlaylist}
     <div class="playlist-details">
-      <button class="back-btn" onclick={handleBack}>
-        <span class="material-symbols-rounded">arrow_back</span>
-        Back to Playlists
-      </button>
+      <div class="top-bar">
+        <button class="back-btn" onclick={handleBack}>
+          <span class="material-symbols-rounded">arrow_back</span>
+          Back to Playlists
+        </button>
+        
+        {#if speakers.length > 0}
+          <div class="speaker-selector">
+            <label for="speaker-select">Speaker:</label>
+            <select id="speaker-select" bind:value={selectedSpeaker}>
+              {#each speakers as speaker}
+                <option value={speaker.id}>{speaker.name}</option>
+              {/each}
+            </select>
+          </div>
+        {/if}
+      </div>
 
       <div class="playlist-header">
         {#if selectedPlaylist.imageUrl}
@@ -184,21 +211,34 @@
     </div>
   {:else}
     <div class="controls">
-      <div class="view-toggle">
-        <button
-          class="tab-btn"
-          class:active={view === "playlists"}
-          onclick={() => (view = "playlists")}
-        >
-          Playlists
-        </button>
-        <button
-          class="tab-btn"
-          class:active={view === "search"}
-          onclick={() => (view = "search")}
-        >
-          Search
-        </button>
+      <div class="top-controls">
+        <div class="view-toggle">
+          <button
+            class="tab-btn"
+            class:active={view === "playlists"}
+            onclick={() => (view = "playlists")}
+          >
+            Playlists
+          </button>
+          <button
+            class="tab-btn"
+            class:active={view === "search"}
+            onclick={() => (view = "search")}
+          >
+            Search
+          </button>
+        </div>
+
+        {#if speakers.length > 0}
+          <div class="speaker-selector">
+            <label for="speaker-select-main">Speaker:</label>
+            <select id="speaker-select-main" bind:value={selectedSpeaker}>
+              {#each speakers as speaker}
+                <option value={speaker.id}>{speaker.name}</option>
+              {/each}
+            </select>
+          </div>
+        {/if}
       </div>
 
       {#if view === "search"}

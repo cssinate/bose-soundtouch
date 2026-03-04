@@ -151,8 +151,7 @@ export const yourservice: MusicServicePlugin = {
   metadata: {
     id: "yourservice",
     name: "Your Service",
-    authUrl: "/auth/yourservice",
-    icon: "🎵"
+    authUrl: "/auth/yourservice"
   },
   api
 };
