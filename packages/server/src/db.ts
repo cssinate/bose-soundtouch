@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import type { TokenStore, TokenRecord } from "@soundtouch/core";
 
 export function createDatabase(dataDir: string): Database.Database {
   const dbPath = resolve(dataDir, "soundtouch.db");
@@ -122,4 +123,15 @@ export function setPreference(
      VALUES (?, ?)
      ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
   ).run(key, value);
+}
+
+export function createTokenStore(db: Database.Database): TokenStore {
+  return {
+    get(service: string): TokenRecord | undefined {
+      return getToken(db, service) as TokenRecord | undefined;
+    },
+    upsert(service, accessToken, refreshToken, expiresAt, scope) {
+      upsertToken(db, service, accessToken, refreshToken, expiresAt, scope);
+    },
+  };
 }

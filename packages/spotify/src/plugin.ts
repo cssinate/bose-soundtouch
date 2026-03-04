@@ -1,5 +1,4 @@
-import type { SpotifyConfig } from "@soundtouch/core";
-import type { ServiceModule, ServiceContext } from "@soundtouch/core";
+import type { SpotifyConfig } from "./config.js";
 import { SpotifyAuth } from "./auth.js";
 import { SpotifyClient } from "./client.js";
 
@@ -20,10 +19,7 @@ export interface SpotifyPluginDeps {
   ) => void;
 }
 
-export function createSpotifyModule(deps: SpotifyPluginDeps): ServiceModule & {
-  getAuth: () => SpotifyAuth;
-  getClient: () => Promise<SpotifyClient>;
-} {
+export function createSpotifyModule(deps: SpotifyPluginDeps) {
   const auth = new SpotifyAuth(deps.spotifyConfig);
   let client: SpotifyClient | null = null;
 
@@ -52,20 +48,10 @@ export function createSpotifyModule(deps: SpotifyPluginDeps): ServiceModule & {
   }
 
   return {
-    name: "spotify",
-    version: "0.1.0",
-
-    async register(ctx: ServiceContext) {
-      ctx.logger.info("Spotify module registered");
-    },
-
-    isConfigured(): boolean {
-      return !!(
-        deps.spotifyConfig.clientId && deps.spotifyConfig.clientSecret
-      );
-    },
-
+    name: "spotify" as const,
     getAuth: () => auth,
     getClient,
+    isConfigured: () =>
+      !!(deps.spotifyConfig.clientId && deps.spotifyConfig.clientSecret),
   };
 }

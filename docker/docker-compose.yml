@@ -23,8 +23,6 @@ services:
       # - PIN=1234
     volumes:
       - soundtouch_data:/data
-      # Optional: mount config file from parent directory
-      # - ../soundtouch.config.yaml:/app/soundtouch.config.yaml:ro
     restart: unless-stopped
 
 volumes:

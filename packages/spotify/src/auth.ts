@@ -1,4 +1,4 @@
-import type { SpotifyConfig } from "@soundtouch/core";
+import type { SpotifyConfig } from "./config.js";
 import type { SpotifyTokens } from "./types.js";
 
 const AUTHORIZE_URL = "https://accounts.spotify.com/authorize";

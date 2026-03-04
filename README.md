@@ -68,7 +68,30 @@ pnpm --filter @soundtouch/web dev
 
 ## Configuration
 
-The server reads configuration from environment variables and/or a `soundtouch.config.yaml` file. Environment variables take precedence.
+### Docker Configuration
+
+When running via Docker, configure the server using environment variables in the `.env` file (see `docker/.env.example`). All settings are available as environment variables.
+
+**Common Docker setup:**
+
+```bash
+cd docker
+cp .env.example .env
+# Edit .env with your settings
+```
+
+**Important for WSL2/Windows users:** If SSDP discovery doesn't work (common with WSL2's virtual networking), disable it and manually specify your speaker IPs:
+
+```bash
+DISCOVERY_ENABLED=false
+SPEAKER_HOSTS=192.168.1.100:8090,192.168.1.101:8090
+```
+
+### Local Development Configuration
+
+When running locally (non-Docker), you can use either environment variables or a `soundtouch.config.yaml` file in the project root. The YAML config provides a more readable format for complex setups. See `soundtouch.config.example.yaml` for the full schema.
+
+Environment variables take precedence over the config file.
 
 ### Environment Variables
 
@@ -85,9 +108,9 @@ The server reads configuration from environment variables and/or a `soundtouch.c
 | `SPOTIFY_CLIENT_SECRET` | Spotify app client secret | _(none)_ |
 | `SPOTIFY_REDIRECT_URI` | Spotify OAuth callback URL | `http://127.0.0.1:3000/auth/spotify/callback` |
 
-### Config File
+### Config File (Local Development Only)
 
-See `soundtouch.config.example.yaml` for the full schema.
+For local development, you can use `soundtouch.config.yaml` instead of environment variables. See `soundtouch.config.example.yaml` for the full schema.
 
 ## Using Individual Packages
 
@@ -185,6 +208,15 @@ new SoundTouch(host: string, port?: number, timeout?: number)
 - Node.js 18.0.0 or higher
 - pnpm 9+ (for development)
 - Docker (for self-hosting)
+
+## Contributing
+
+When adding a new service package (e.g., `@soundtouch/deezer`):
+
+1. Create the package in `packages/` following the existing structure
+2. Export a `plugin` object conforming to the `ServerPlugin` interface from `@soundtouch/core`
+
+The Dockerfile uses glob patterns (`packages/*/package.json`, `packages/*/dist`) so new packages are picked up automatically with no Dockerfile changes required. The server discovers plugins at startup based on config keys: a `deezer:` section in the config triggers `import("@soundtouch/deezer")`.
 
 ## Credit
 

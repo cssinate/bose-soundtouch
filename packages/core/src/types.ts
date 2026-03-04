@@ -1,15 +1,37 @@
+import type { z } from "zod";
 import type { Logger } from "./logger.js";
 
-export interface ServiceModule {
-  name: string;
-  version: string;
-  register(context: ServiceContext): Promise<void>;
-  isConfigured(): boolean;
+export interface TokenRecord {
+  access_token: string;
+  refresh_token: string | null;
+  expires_at: number | null;
+  scope: string | null;
 }
 
-export interface ServiceContext {
+export interface TokenStore {
+  get(service: string): TokenRecord | undefined;
+  upsert(
+    service: string,
+    accessToken: string,
+    refreshToken?: string | null,
+    expiresAt?: number | null,
+    scope?: string | null,
+  ): void;
+}
+
+export interface PluginContext {
   logger: Logger;
-  config: Record<string, unknown>;
+  tokenStore: TokenStore;
+}
+
+export interface ServerPlugin {
+  name: string;
+  configSchema: z.ZodTypeAny;
+  createRoutes(
+    app: unknown,
+    context: PluginContext,
+    config: unknown,
+  ): Promise<void>;
 }
 
 export interface SpeakerInfo {
