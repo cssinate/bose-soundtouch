@@ -51,7 +51,10 @@
   async function loadPlaylists() {
     try {
       const response = await getSpotifyPlaylists();
-      playlists = response.items || [];
+      console.log("Playlists response:", response);
+      // Server returns array directly, not wrapped in { items: [] }
+      playlists = Array.isArray(response) ? response : (response.items || []);
+      console.log("Playlists array:", playlists);
     } catch (e) {
       console.error("Failed to load playlists", e);
     }
@@ -60,7 +63,8 @@
   async function loadPlaylistTracks(playlistId: string) {
     try {
       const response = await getSpotifyPlaylistTracks(playlistId);
-      tracks = response.items || [];
+      // Server returns array directly, not wrapped in { items: [] }
+      tracks = Array.isArray(response) ? response : (response.items || []);
     } catch (e) {
       console.error("Failed to load tracks", e);
     }
@@ -124,7 +128,7 @@
       location: item.uri,
       sourceAccount: "", // Will be filled by the speaker
       itemName: item.name,
-      containerArt: item.images?.[0]?.url || "",
+      containerArt: type === "playlist" ? item.imageUrl : item.album?.imageUrl || "",
     };
 
     try {
@@ -182,12 +186,12 @@
               ← Back
             </button>
             <div class="playlist-info">
-              {#if selectedPlaylist.images?.[0]?.url}
-                <img src={selectedPlaylist.images[0].url} alt={selectedPlaylist.name} />
+              {#if selectedPlaylist.imageUrl}
+                <img src={selectedPlaylist.imageUrl} alt={selectedPlaylist.name} />
               {/if}
               <div>
                 <h2>{selectedPlaylist.name}</h2>
-                <p>{selectedPlaylist.tracks?.total || 0} tracks</p>
+                <p>{selectedPlaylist.trackCount} tracks</p>
               </div>
             </div>
             <div class="playlist-actions">
@@ -200,10 +204,10 @@
             </div>
           </div>
           <div class="track-list">
-            {#each tracks as { track } (track.id)}
+            {#each tracks as track (track.id)}
               <div class="track-item">
-                {#if track.album?.images?.[0]?.url}
-                  <img src={track.album.images[0].url} alt={track.name} class="track-art" />
+                {#if track.album?.imageUrl}
+                  <img src={track.album.imageUrl} alt={track.name} class="track-art" />
                 {/if}
                 <div class="track-info">
                   <div class="track-name">{track.name}</div>
@@ -221,13 +225,13 @@
         <div class="playlist-grid">
           {#each playlists as playlist (playlist.id)}
             <div class="playlist-card" onclick={() => handlePlaylistClick(playlist)}>
-              {#if playlist.images?.[0]?.url}
-                <img src={playlist.images[0].url} alt={playlist.name} />
+              {#if playlist.imageUrl}
+                <img src={playlist.imageUrl} alt={playlist.name} />
               {:else}
                 <div class="placeholder-art">♫</div>
               {/if}
               <div class="playlist-name">{playlist.name}</div>
-              <div class="playlist-tracks">{playlist.tracks?.total || 0} tracks</div>
+              <div class="playlist-tracks">{playlist.trackCount} tracks</div>
             </div>
           {/each}
         </div>
@@ -245,14 +249,14 @@
         </div>
         {#if searchResults}
           <div class="search-results">
-            {#if searchResults.tracks?.items?.length > 0}
+            {#if searchResults.tracks?.length > 0}
               <section>
                 <h3>Tracks</h3>
                 <div class="track-list">
-                  {#each searchResults.tracks.items as track (track.id)}
+                  {#each searchResults.tracks as track (track.id)}
                     <div class="track-item">
-                      {#if track.album?.images?.[0]?.url}
-                        <img src={track.album.images[0].url} alt={track.name} class="track-art" />
+                      {#if track.album?.imageUrl}
+                        <img src={track.album.imageUrl} alt={track.name} class="track-art" />
                       {/if}
                       <div class="track-info">
                         <div class="track-name">{track.name}</div>
