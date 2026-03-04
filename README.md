@@ -83,7 +83,7 @@ The server reads configuration from environment variables and/or a `soundtouch.c
 | `DISCOVERY_ENABLED` | Enable SSDP speaker discovery | `true` |
 | `SPOTIFY_CLIENT_ID` | Spotify app client ID | _(none)_ |
 | `SPOTIFY_CLIENT_SECRET` | Spotify app client secret | _(none)_ |
-| `SPOTIFY_REDIRECT_URI` | Spotify OAuth callback URL | `http://localhost:3000/auth/spotify/callback` |
+| `SPOTIFY_REDIRECT_URI` | Spotify OAuth callback URL | `http://127.0.0.1:3000/auth/spotify/callback` |
 
 ### Config File
 
@@ -142,7 +142,7 @@ import { SpotifyAuth, SpotifyClient } from "@soundtouch/spotify";
 const auth = new SpotifyAuth({
   clientId: "your-client-id",
   clientSecret: "your-client-secret",
-  redirectUri: "http://localhost:3000/auth/spotify/callback",
+  redirectUri: "http://127.0.0.1:3000/auth/spotify/callback",
 });
 
 // After OAuth flow...

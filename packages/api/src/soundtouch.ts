@@ -149,7 +149,13 @@ export class SoundTouch {
 
   async getNowPlaying(): Promise<NowPlaying> {
     const data = await this.get<{ nowPlaying: NowPlaying }>("/now_playing");
-    return data.nowPlaying;
+    const nowPlaying = data.nowPlaying;
+
+    if (!nowPlaying.art && nowPlaying.ContentItem?.containerArt) {
+      nowPlaying.art = nowPlaying.ContentItem.containerArt;
+    }
+
+    return nowPlaying;
   }
 
   async getSources(): Promise<Sources> {

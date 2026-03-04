@@ -20,4 +20,4 @@ discovery:
 # spotify:
 #   clientId: your-client-id
 #   clientSecret: your-client-secret
-#   redirectUri: http://localhost:3000/auth/spotify/callback
+#   redirectUri: http://127.0.0.1:3000/auth/spotify/callback

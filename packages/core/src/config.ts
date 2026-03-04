@@ -12,7 +12,7 @@ export const spotifyConfigSchema = z.object({
   redirectUri: z
     .string()
     .url()
-    .default("http://localhost:3000/auth/spotify/callback"),
+    .default("http://127.0.0.1:3000/auth/spotify/callback"),
 });
 
 export const serverConfigSchema = z.object({

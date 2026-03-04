@@ -43,7 +43,7 @@ export async function createServer(opts: ServerOptions) {
       "..",
       "..",
       "web",
-      "build",
+      "dist",
     );
 
   if (existsSync(webDist)) {

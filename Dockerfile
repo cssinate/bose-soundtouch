@@ -13,8 +13,16 @@ COPY packages/web/package.json packages/web/
 RUN pnpm install --frozen-lockfile
 
 FROM base AS build
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/core/package.json packages/core/
+COPY packages/api/package.json packages/api/
+COPY packages/discovery/package.json packages/discovery/
+COPY packages/spotify/package.json packages/spotify/
+COPY packages/server/package.json packages/server/
+COPY packages/web/package.json packages/web/
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/*/node_modules ./packages/
+COPY --from=deps /root/.local/share/pnpm/store /root/.local/share/pnpm/store
+RUN pnpm install --frozen-lockfile --offline
 COPY . .
 RUN pnpm build
 

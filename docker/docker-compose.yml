@@ -18,11 +18,13 @@ services:
       # Spotify (optional — leave blank to disable)
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET:-}
-      - SPOTIFY_REDIRECT_URI=${SPOTIFY_REDIRECT_URI:-http://localhost:3000/auth/spotify/callback}
+      - SPOTIFY_REDIRECT_URI=${SPOTIFY_REDIRECT_URI:-http://127.0.0.1:3000/auth/spotify/callback}
       # Optional PIN to protect the web UI
       # - PIN=1234
     volumes:
       - soundtouch_data:/data
+      # Optional: mount config file from parent directory
+      # - ../soundtouch.config.yaml:/app/soundtouch.config.yaml:ro
     restart: unless-stopped
 
 volumes:
