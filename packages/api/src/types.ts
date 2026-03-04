@@ -1,7 +1,3 @@
-/**
- * Type definitions for Bose SoundTouch API responses
- */
-
 export enum PlayStatus {
   PLAY_STATE = "PLAY_STATE",
   PAUSE_STATE = "PAUSE_STATE",

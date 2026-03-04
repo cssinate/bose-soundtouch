@@ -1,0 +1,42 @@
+{
+  "name": "@soundtouch/spotify",
+  "version": "0.1.0",
+  "description": "Spotify integration for SoundTouch speakers",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@soundtouch/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@soundtouch/api": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@soundtouch/api": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@soundtouch/api": "workspace:*",
+    "@types/node": "^20",
+    "tsup": "^8",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": ["dist"],
+  "license": "MIT",
+  "author": "Paul Grant"
+}

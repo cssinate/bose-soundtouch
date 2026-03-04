@@ -1,0 +1,23 @@
+server:
+  port: 3000
+  host: 0.0.0.0
+  dataDir: ./data
+  logLevel: info
+  # pin: "1234"
+
+# Manual speaker configuration (optional if discovery is enabled)
+speakers:
+  - host: 192.168.1.100
+    port: 8090
+  # - host: 192.168.1.101
+  #   port: 8090
+
+discovery:
+  enabled: true
+  intervalMs: 30000
+
+# Spotify integration (optional)
+# spotify:
+#   clientId: your-client-id
+#   clientSecret: your-client-secret
+#   redirectUri: http://localhost:3000/auth/spotify/callback

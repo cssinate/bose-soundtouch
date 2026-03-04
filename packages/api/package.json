@@ -1,0 +1,44 @@
+{
+  "name": "@soundtouch/api",
+  "version": "0.1.0",
+  "description": "TypeScript library for controlling Bose SoundTouch speakers via the local REST API",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist",
+    "demo": "tsx demo.ts"
+  },
+  "dependencies": {
+    "@soundtouch/core": "workspace:*",
+    "fast-xml-parser": "^4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsup": "^8",
+    "tsx": "^4",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "bose",
+    "soundtouch",
+    "speaker",
+    "audio",
+    "rest",
+    "api"
+  ],
+  "files": ["dist"],
+  "license": "MIT",
+  "author": "Paul Grant"
+}

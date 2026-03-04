@@ -1,0 +1,29 @@
+services:
+  soundtouch:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    # Host networking is required for SSDP speaker discovery
+    # and direct communication with speakers on the LAN.
+    # If you can't use host networking, set DISCOVERY_ENABLED=false
+    # and configure SPEAKER_HOSTS manually.
+    network_mode: host
+    environment:
+      - PORT=3000
+      - LOG_LEVEL=info
+      # Speaker discovery (disable if not using host networking)
+      - DISCOVERY_ENABLED=true
+      # Manual speaker IPs (comma-separated host:port)
+      # - SPEAKER_HOSTS=192.168.1.100:8090,192.168.1.101:8090
+      # Spotify (optional — leave blank to disable)
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET:-}
+      - SPOTIFY_REDIRECT_URI=${SPOTIFY_REDIRECT_URI:-http://localhost:3000/auth/spotify/callback}
+      # Optional PIN to protect the web UI
+      # - PIN=1234
+    volumes:
+      - soundtouch_data:/data
+    restart: unless-stopped
+
+volumes:
+  soundtouch_data:
