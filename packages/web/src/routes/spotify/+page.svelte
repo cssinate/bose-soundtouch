@@ -8,8 +8,8 @@
     playSpotifyUri,
     playSpotifyTrack,
     getSpeakers,
-    storePreset,
   } from "$lib/api.js";
+  import PresetPopover from "$lib/components/PresetPopover.svelte";
   import type { SpeakerInfo } from "$lib/types.js";
 
   let authenticated = $state(false);
@@ -22,9 +22,8 @@
   let searchQuery = $state("");
   let searchResults: any = $state(null);
   let view: "playlists" | "search" = $state("playlists");
-  let showPresetDialog = $state(false);
-  let pendingPreset: { type: "playlist" | "track"; item: any } | null = $state(null);
-  let selectedPresetSlot: number | null = $state(null);
+  let currentlyPlayingUri: string | null = $state(null);
+  let shuffleEnabled = $state(false);
 
   onMount(async () => {
     try {
@@ -40,13 +39,41 @@
 
       if (authenticated) {
         await loadPlaylists();
+        
+        // Check URL for playlist ID
+        const params = new URLSearchParams(window.location.search);
+        const playlistId = params.get('playlist');
+        if (playlistId) {
+          const playlist = playlists.find(p => p.id === playlistId);
+          if (playlist) {
+            await selectPlaylist(playlist);
+          }
+        }
       }
     } catch (e) {
       console.error("Failed to load Spotify status", e);
     } finally {
       loading = false;
     }
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   });
+
+  function handlePopState() {
+    const params = new URLSearchParams(window.location.search);
+    const playlistId = params.get('playlist');
+    
+    if (!playlistId) {
+      handleBackToPlaylists();
+    } else if (selectedPlaylist?.id !== playlistId) {
+      const playlist = playlists.find(p => p.id === playlistId);
+      if (playlist) {
+        selectPlaylist(playlist);
+      }
+    }
+  }
 
   async function loadPlaylists() {
     try {
@@ -70,14 +97,35 @@
     }
   }
 
+  async function selectPlaylist(playlist: any) {
+    if (document.startViewTransition) {
+      document.startViewTransition(async () => {
+        selectedPlaylist = playlist;
+        await loadPlaylistTracks(playlist.id);
+      });
+    } else {
+      selectedPlaylist = playlist;
+      await loadPlaylistTracks(playlist.id);
+    }
+    
+    // Update URL
+    const url = new URL(window.location.href);
+    url.searchParams.set('playlist', playlist.id);
+    window.history.pushState({}, '', url);
+  }
+
   async function handlePlaylistClick(playlist: any) {
-    selectedPlaylist = playlist;
-    await loadPlaylistTracks(playlist.id);
+    await selectPlaylist(playlist);
   }
 
   function handleBackToPlaylists() {
     selectedPlaylist = null;
     tracks = [];
+    
+    // Update URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete('playlist');
+    window.history.pushState({}, '', url);
   }
 
   async function handleSearch() {
@@ -93,6 +141,7 @@
     if (!selectedSpeaker) return;
     try {
       await playSpotifyTrack(track.uri);
+      currentlyPlayingUri = track.uri;
     } catch (e) {
       console.error("Failed to play track", e);
     }
@@ -102,44 +151,18 @@
     if (!selectedSpeaker) return;
     try {
       await playSpotifyUri(playlist.uri);
+      currentlyPlayingUri = playlist.uri;
     } catch (e) {
       console.error("Failed to play playlist", e);
     }
   }
 
-  function openPresetDialog(type: "playlist" | "track", item: any) {
-    pendingPreset = { type, item };
-    showPresetDialog = true;
+  function toggleShuffle() {
+    shuffleEnabled = !shuffleEnabled;
+    // TODO: Implement actual shuffle API call
+    console.log("Shuffle toggled:", shuffleEnabled);
   }
 
-  function closePresetDialog() {
-    showPresetDialog = false;
-    pendingPreset = null;
-    selectedPresetSlot = null;
-  }
-
-  async function saveToPreset() {
-    if (!selectedSpeaker || !selectedPresetSlot || !pendingPreset) return;
-
-    const { type, item } = pendingPreset;
-    const contentItem = {
-      source: "SPOTIFY",
-      type: type === "playlist" ? "playlist" : "track",
-      location: item.uri,
-      sourceAccount: "", // Will be filled by the speaker
-      itemName: item.name,
-      containerArt: type === "playlist" ? item.imageUrl : item.album?.imageUrl || "",
-    };
-
-    try {
-      await storePreset(selectedSpeaker, selectedPresetSlot, contentItem);
-      alert("Preset saved!");
-      closePresetDialog();
-    } catch (e) {
-      console.error("Failed to save preset", e);
-      alert("Failed to save preset");
-    }
-  }
 </script>
 
 {#if loading}
@@ -187,10 +210,16 @@
             </button>
             <div class="playlist-info">
               {#if selectedPlaylist.imageUrl}
-                <img src={selectedPlaylist.imageUrl} alt={selectedPlaylist.name} />
+                <img 
+                  src={selectedPlaylist.imageUrl} 
+                  alt={selectedPlaylist.name}
+                  style="view-transition-name: playlist-art-{selectedPlaylist.id}"
+                />
               {/if}
               <div>
-                <h2>{selectedPlaylist.name}</h2>
+                <h2 style="view-transition-name: playlist-name-{selectedPlaylist.id}">
+                  {selectedPlaylist.name} ({selectedPlaylist.trackCount})
+                </h2>
                 <p>{selectedPlaylist.trackCount} tracks</p>
               </div>
             </div>
@@ -215,7 +244,15 @@
                 </div>
                 <div class="track-actions">
                   <button onclick={() => handlePlayTrack(track)}>Play</button>
-                  <button onclick={() => openPresetDialog("track", track)}>Preset</button>
+                  <button popovertarget="track-preset-{track.id}">
+                    Preset
+                  </button>
+                  <PresetPopover 
+                    id="track-preset-{track.id}"
+                    {selectedSpeaker}
+                    item={track}
+                    type="track"
+                  />
                 </div>
               </div>
             {/each}
@@ -224,14 +261,43 @@
       {:else}
         <div class="playlist-grid">
           {#each playlists as playlist (playlist.id)}
-            <div class="playlist-card" onclick={() => handlePlaylistClick(playlist)}>
-              {#if playlist.imageUrl}
-                <img src={playlist.imageUrl} alt={playlist.name} />
-              {:else}
-                <div class="placeholder-art">♫</div>
-              {/if}
-              <div class="playlist-name">{playlist.name}</div>
-              <div class="playlist-tracks">{playlist.trackCount} tracks</div>
+            <div class="playlist-card">
+              <div class="playlist-art" onclick={() => handlePlaylistClick(playlist)}>
+                {#if playlist.imageUrl}
+                  <img src={playlist.imageUrl} alt={playlist.name} style="view-transition-name: playlist-art-{playlist.id}" />
+                {:else}
+                  <div class="placeholder-art">♫</div>
+                {/if}
+              </div>
+              <div class="playlist-name" style="view-transition-name: playlist-name-{playlist.id}">
+                {playlist.name} ({playlist.trackCount})
+              </div>
+              <div class="playlist-actions">
+                <button class="action-btn" onclick={() => handlePlaylistClick(playlist)} title="View details">
+                  👁️
+                </button>
+                <button 
+                  class="action-btn" 
+                  popovertarget="preset-{playlist.id}"
+                  title="Add to preset"
+                >
+                  ⭐
+                </button>
+                <PresetPopover 
+                  id="preset-{playlist.id}" 
+                  {selectedSpeaker}
+                  item={playlist}
+                  type="playlist"
+                />
+                <button class="action-btn" onclick={() => handlePlayPlaylist(playlist)} title="Play">
+                  ▶️
+                </button>
+                {#if currentlyPlayingUri === playlist.uri}
+                  <button class="action-btn" onclick={toggleShuffle} title="Toggle shuffle">
+                    🔀
+                  </button>
+                {/if}
+              </div>
             </div>
           {/each}
         </div>
@@ -264,7 +330,15 @@
                       </div>
                       <div class="track-actions">
                         <button onclick={() => handlePlayTrack(track)}>Play</button>
-                        <button onclick={() => openPresetDialog("track", track)}>Preset</button>
+                        <button popovertarget="search-track-preset-{track.id}">
+                          Preset
+                        </button>
+                        <PresetPopover 
+                          id="search-track-preset-{track.id}"
+                          {selectedSpeaker}
+                          item={track}
+                          type="track"
+                        />
                       </div>
                     </div>
                   {/each}
@@ -276,37 +350,6 @@
       </div>
     {/if}
   </div>
-
-  {#if showPresetDialog}
-    <div class="dialog-overlay" onclick={closePresetDialog}>
-      <div class="dialog" onclick={(e) => e.stopPropagation()}>
-        <h2>Save to Preset</h2>
-        <p>Select a preset button (1-6) to save this {pendingPreset?.type}:</p>
-        <div class="preset-name"><strong>{pendingPreset?.item.name}</strong></div>
-        <div class="preset-buttons">
-          {#each [1, 2, 3, 4, 5, 6] as slot}
-            <button
-              class="preset-btn"
-              class:selected={selectedPresetSlot === slot}
-              onclick={() => (selectedPresetSlot = slot)}
-            >
-              {slot}
-            </button>
-          {/each}
-        </div>
-        <div class="dialog-actions">
-          <button class="btn-secondary" onclick={closePresetDialog}>Cancel</button>
-          <button
-            class="btn-primary"
-            disabled={!selectedPresetSlot}
-            onclick={saveToPreset}
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
-  {/if}
 {/if}
 
 <style>
@@ -430,11 +473,17 @@
     background: var(--color-surface);
     border-radius: var(--radius-md);
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .playlist-art {
     cursor: pointer;
     transition: transform 0.2s;
   }
 
-  .playlist-card:hover {
+  .playlist-art:hover {
     transform: translateY(-4px);
   }
 
@@ -444,7 +493,6 @@
     aspect-ratio: 1;
     border-radius: var(--radius-sm);
     object-fit: cover;
-    margin-bottom: 0.75rem;
   }
 
   .placeholder-art {
@@ -458,12 +506,31 @@
 
   .playlist-name {
     font-weight: 600;
-    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+    line-height: 1.3;
   }
 
-  .playlist-tracks {
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
+  .playlist-actions {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: space-between;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 0.5rem;
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-sm);
+    font-size: 1.1rem;
+    transition: transform 0.1s;
+  }
+
+  .action-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .action-btn:active {
+    transform: scale(0.95);
   }
 
   .tracks-view {
@@ -597,71 +664,5 @@
   .search-results h3 {
     margin: 0 0 1rem;
     font-size: 1.3rem;
-  }
-
-  .dialog-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-
-  .dialog {
-    background: var(--color-background);
-    border-radius: var(--radius-md);
-    padding: 2rem;
-    max-width: 500px;
-    width: 90%;
-  }
-
-  .dialog h2 {
-    margin: 0 0 1rem;
-  }
-
-  .dialog p {
-    color: var(--color-text-muted);
-    margin-bottom: 1rem;
-  }
-
-  .preset-name {
-    margin-bottom: 1.5rem;
-    padding: 0.75rem;
-    background: var(--color-surface);
-    border-radius: var(--radius-sm);
-  }
-
-  .preset-buttons {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .preset-btn {
-    aspect-ratio: 1;
-    padding: 0;
-    background: var(--color-surface);
-    border: 2px solid transparent;
-    border-radius: var(--radius-sm);
-    font-size: 1.2rem;
-    font-weight: 600;
-  }
-
-  .preset-btn.selected {
-    background: var(--color-primary);
-    color: white;
-    border-color: var(--color-primary);
-  }
-
-  .dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
   }
 </style>

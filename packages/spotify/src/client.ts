@@ -63,12 +63,13 @@ export class SpotifyClient {
   async search(
     query: string,
     types: ("track" | "album" | "playlist")[] = ["track", "album", "playlist"],
-    limit = 20,
+    limit = 10,
   ): Promise<SpotifySearchResults> {
     const params = new URLSearchParams({
       q: query,
       type: types.join(","),
       limit: String(limit),
+      market: "from_token",
     });
 
     const data = await this.request<{

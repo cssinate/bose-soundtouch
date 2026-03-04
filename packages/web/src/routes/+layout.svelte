@@ -1,14 +1,13 @@
 <script>
   import "../app.css";
   import { onMount } from "svelte";
+  import { page } from "$app/stores";
   import { getServiceStatus } from "$lib/api.js";
 
   let { children } = $props();
   let spotifyEnabled = $state(false);
-  let currentPath = $state("/");
 
   onMount(async () => {
-    currentPath = window.location.pathname;
     try {
       const status = await getServiceStatus();
       spotifyEnabled = !!status.services?.spotify;
@@ -16,6 +15,9 @@
       console.error("Failed to get service status", e);
     }
   });
+
+  // Reactive statement to get current path
+  let currentPath = $derived($page.url.pathname);
 </script>
 
 <div class="app">
