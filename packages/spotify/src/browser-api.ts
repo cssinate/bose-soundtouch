@@ -8,6 +8,9 @@ import type { MusicServiceBrowserAPI, MusicServicePlugin } from "@soundtouch/cor
 
 const BASE = "";
 
+// Cache the Spotify username
+let cachedSpotifyUsername: string | null = null;
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     headers: { "Content-Type": "application/json" },
@@ -20,15 +23,30 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-function spotifyUriToContentItem(uri: string, metadata?: Record<string, any>) {
+async function getSpotifyUsername(): Promise<string> {
+  if (cachedSpotifyUsername) {
+    return cachedSpotifyUsername;
+  }
+  
+  try {
+    const me = await request<any>("/api/spotify/me");
+    cachedSpotifyUsername = me.id || me.display_name || "";
+    return cachedSpotifyUsername;
+  } catch (error) {
+    console.error("Failed to get Spotify username:", error);
+    return "";
+  }
+}
+
+function spotifyUriToContentItem(uri: string, metadata?: Record<string, any>, sourceAccount?: string) {
   return {
     source: "SPOTIFY",
     type: "uri",
     location: uri,
-    sourceAccount: "",
+    sourceAccount: sourceAccount || "",
     itemName: metadata?.name || uri,
     containerArt: metadata?.imageUrl,
-  }
+  };
 }
 
 // Standard MusicServiceBrowserAPI implementation
@@ -53,7 +71,8 @@ export async function getPlaylistTracks(playlistId: string): Promise<any> {
 }
 
 export async function playUri(speakerId: string, uri: string, metadata?: Record<string, any>): Promise<void> {
-  const contentItem = spotifyUriToContentItem(uri, metadata);
+  const username = await getSpotifyUsername();
+  const contentItem = spotifyUriToContentItem(uri, metadata, username);
   await request(`/api/speakers/${speakerId}/play`, {
     method: "POST",
     body: JSON.stringify({ contentItem }),
@@ -61,7 +80,8 @@ export async function playUri(speakerId: string, uri: string, metadata?: Record<
 }
 
 export async function playTrack(speakerId: string, uri: string, metadata?: Record<string, any>): Promise<void> {
-  const contentItem = spotifyUriToContentItem(uri, metadata);
+  const username = await getSpotifyUsername();
+  const contentItem = spotifyUriToContentItem(uri, metadata, username);
   await request(`/api/speakers/${speakerId}/play`, {
     method: "POST",
     body: JSON.stringify({ contentItem }),

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { storePreset } from "$lib/api.js";
+  import { getSpotifyMe } from "@soundtouch/spotify";
 
   interface Props {
     contentItem: any;
@@ -9,15 +10,32 @@
 
   let { contentItem, speakerId, triggerId }: Props = $props();
   const popoverId = `popover-${triggerId}`;
+  
+  // Cache username
+  let spotifyUsername: string | null = null;
+
+  async function getUsername() {
+    if (spotifyUsername) return spotifyUsername;
+    
+    try {
+      const me = await getSpotifyMe();
+      spotifyUsername = me.id || me.display_name || "";
+      return spotifyUsername;
+    } catch (error) {
+      console.error("Failed to get Spotify username:", error);
+      return "";
+    }
+  }
 
   async function handlePresetClick(event: MouseEvent, slotNumber: number) {
     if (!speakerId) return;
 
+    const username = await getUsername();
     const item = {
       source: "SPOTIFY",
       type: "uri",
       location: contentItem.uri,
-      sourceAccount: "",
+      sourceAccount: username,
       itemName: contentItem.name,
       containerArt: contentItem.imageUrl,
     };
