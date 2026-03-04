@@ -19,9 +19,7 @@
     onclick={() => onAction("previous")}
     aria-label="Previous track"
   >
-    <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
-      <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
-    </svg>
+    <span class="material-symbols-rounded">skip_previous</span>
   </button>
 
   <button
@@ -30,13 +28,9 @@
     aria-label={isPlaying ? "Pause" : "Play"}
   >
     {#if isPlaying}
-      <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36">
-        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-      </svg>
+      <span class="material-symbols-rounded filled">pause_circle</span>
     {:else}
-      <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36">
-        <path d="M8 5v14l11-7z" />
-      </svg>
+      <span class="material-symbols-rounded filled">play_circle</span>
     {/if}
   </button>
 
@@ -46,9 +40,7 @@
     onclick={() => onAction("next")}
     aria-label="Next track"
   >
-    <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
-      <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
-    </svg>
+    <span class="material-symbols-rounded">skip_next</span>
   </button>
 </div>
 
@@ -75,6 +67,10 @@
       transform 0.1s;
   }
 
+  .control-btn span {
+    font-size: 28px;
+  }
+
   .control-btn:active:not(:disabled) {
     transform: scale(0.93);
   }
@@ -88,6 +84,10 @@
     height: 72px;
     background: var(--color-accent);
     color: #000;
+  }
+
+  .play-btn span {
+    font-size: 48px;
   }
 
   .play-btn:hover:not(:disabled) {

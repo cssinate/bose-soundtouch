@@ -119,8 +119,15 @@
   }
 
   function handleBackToPlaylists() {
-    selectedPlaylist = null;
-    tracks = [];
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        selectedPlaylist = null;
+        tracks = [];
+      });
+    } else {
+      selectedPlaylist = null;
+      tracks = [];
+    }
     
     // Update URL
     const url = new URL(window.location.href);
@@ -262,26 +269,28 @@
         <div class="playlist-grid">
           {#each playlists as playlist (playlist.id)}
             <div class="playlist-card">
-              <div class="playlist-art" onclick={() => handlePlaylistClick(playlist)}>
+              <button class="playlist-art" onclick={() => handlePlaylistClick(playlist)}>
                 {#if playlist.imageUrl}
                   <img src={playlist.imageUrl} alt={playlist.name} style="view-transition-name: playlist-art-{playlist.id}" />
                 {:else}
-                  <div class="placeholder-art">♫</div>
+                  <div class="placeholder-art">
+                    <span class="material-symbols-rounded">queue_music</span>
+                  </div>
                 {/if}
-              </div>
+              </button>
               <div class="playlist-name" style="view-transition-name: playlist-name-{playlist.id}">
                 {playlist.name} ({playlist.trackCount})
               </div>
               <div class="playlist-actions">
                 <button class="action-btn" onclick={() => handlePlaylistClick(playlist)} title="View details">
-                  👁️
+                  <span class="material-symbols-rounded">queue_music</span>
                 </button>
                 <button 
                   class="action-btn" 
                   popovertarget="preset-{playlist.id}"
                   title="Add to preset"
                 >
-                  ⭐
+                  <span class="material-symbols-rounded">bookmark_add</span>
                 </button>
                 <PresetPopover 
                   id="preset-{playlist.id}" 
@@ -290,11 +299,11 @@
                   type="playlist"
                 />
                 <button class="action-btn" onclick={() => handlePlayPlaylist(playlist)} title="Play">
-                  ▶️
+                  <span class="material-symbols-rounded filled">play_arrow</span>
                 </button>
                 {#if currentlyPlayingUri === playlist.uri}
-                  <button class="action-btn" onclick={toggleShuffle} title="Toggle shuffle">
-                    🔀
+                  <button class="action-btn" onclick={toggleShuffle} title="Toggle shuffle" class:active={shuffleEnabled}>
+                    <span class="material-symbols-rounded">shuffle</span>
                   </button>
                 {/if}
               </div>
@@ -481,6 +490,11 @@
   .playlist-art {
     cursor: pointer;
     transition: transform 0.2s;
+    border: none;
+    padding: 0;
+    background: none;
+    width: 100%;
+    display: block;
   }
 
   .playlist-art:hover {
@@ -500,8 +514,11 @@
     align-items: center;
     justify-content: center;
     background: var(--color-background);
-    font-size: 3rem;
     color: var(--color-text-muted);
+  }
+
+  .placeholder-art span {
+    font-size: 4rem;
   }
 
   .playlist-name {
@@ -521,16 +538,25 @@
     padding: 0.5rem;
     background: var(--color-surface-hover);
     border-radius: var(--radius-sm);
-    font-size: 1.1rem;
-    transition: transform 0.1s;
+    transition: transform 0.1s, background 0.2s;
+  }
+
+  .action-btn span {
+    font-size: 20px;
   }
 
   .action-btn:hover {
     transform: scale(1.05);
+    background: var(--color-border);
   }
 
   .action-btn:active {
     transform: scale(0.95);
+  }
+
+  .action-btn.active {
+    background: var(--color-primary);
+    color: white;
   }
 
   .tracks-view {
@@ -563,6 +589,7 @@
     width: 80px;
     height: 80px;
     border-radius: var(--radius-sm);
+    object-fit: cover;
   }
 
   .playlist-info h2 {

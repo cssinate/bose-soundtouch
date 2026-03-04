@@ -48,6 +48,19 @@ docker compose up
 
 Open `http://localhost:3000` in your browser.
 
+### Development with Docker (Hot Reload)
+
+For development with automatic reload when you make changes:
+
+```bash
+cd docker
+cp .env.example .env
+# Edit .env with your settings
+docker compose -f docker-compose.dev.yml up
+```
+
+This mounts your source code as a volume and runs in dev mode with hot reload.
+
 > **Note:** The Docker container uses host networking by default for SSDP speaker discovery. If you can't use host networking, set `DISCOVERY_ENABLED=false` and configure `SPEAKER_HOSTS` manually.
 
 ## Quick Start (Development)
