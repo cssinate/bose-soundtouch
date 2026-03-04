@@ -44,7 +44,7 @@ export function loadConfig(configPath?: string): Config {
   let fileConfig: Record<string, unknown> = {};
 
   const resolvedPath =
-    configPath ?? resolve(process.cwd(), "soundtouch.config.yaml");
+    configPath ?? resolve(process.cwd(), "..", "..", "soundtouch.config.yaml");
 
   if (existsSync(resolvedPath)) {
     const raw = readFileSync(resolvedPath, "utf-8");
