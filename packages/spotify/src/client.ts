@@ -201,7 +201,8 @@ interface RawPlaylist {
   name: string;
   description?: string;
   images?: { url: string }[];
-  tracks: { total: number };
+  items?: { total: number }; // Current field
+  tracks?: { total: number }; // Deprecated but still returned
   uri: string;
 }
 
@@ -251,7 +252,7 @@ function mapPlaylist(raw: RawPlaylist): SpotifyPlaylist {
     name: raw.name,
     description: raw.description ?? undefined,
     imageUrl: raw.images?.[0]?.url,
-    trackCount: raw.tracks.total,
+    trackCount: raw.items?.total ?? raw.tracks?.total ?? 0,
     uri: raw.uri,
   };
 }
