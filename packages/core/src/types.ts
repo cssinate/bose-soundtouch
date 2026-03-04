@@ -41,3 +41,79 @@ export interface SpeakerInfo {
   port: number;
   model?: string;
 }
+
+/**
+ * Metadata for music service plugins
+ * Allows UI to discover and display available services
+ */
+export interface MusicServiceMetadata {
+  /** Service identifier (e.g., "spotify", "deezer") */
+  id: string;
+  /** Display name (e.g., "Spotify", "Deezer") */
+  name: string;
+  /** OAuth authorization URL (relative to server root) */
+  authUrl: string;
+}
+
+/**
+ * Standard shape for music service browser API functions
+ * All music service plugins should implement these functions
+ */
+export interface MusicServiceBrowserAPI {
+  /**
+   * Check authentication status
+   * @returns Object with authenticated flag and optional expiration timestamp
+   */
+  getStatus(): Promise<{ authenticated: boolean; expiresAt: number | null }>;
+
+  /**
+   * Get current user info
+   * @returns User profile data (implementation-specific)
+   */
+  getMe(): Promise<unknown>;
+
+  /**
+   * Search for content (tracks, albums, playlists, artists)
+   * @param query - Search query string
+   * @returns Search results (implementation-specific)
+   */
+  search(query: string): Promise<unknown>;
+
+  /**
+   * Get user's playlists/collections
+   * @returns Array of playlists (implementation-specific)
+   */
+  getPlaylists(): Promise<unknown[]>;
+
+  /**
+   * Get tracks from a specific playlist
+   * @param playlistId - Playlist identifier
+   * @returns Array of tracks (implementation-specific)
+   */
+  getPlaylistTracks(playlistId: string): Promise<unknown[]>;
+
+  /**
+   * Play a context (playlist, album, artist)
+   * @param uri - Service-specific URI for the content
+   * @param deviceId - Optional device identifier
+   */
+  playUri(uri: string, deviceId?: string): Promise<void>;
+
+  /**
+   * Play a single track
+   * @param uri - Service-specific URI for the track
+   * @param deviceId - Optional device identifier
+   */
+  playTrack(uri: string, deviceId?: string): Promise<void>;
+}
+
+/**
+ * Complete music service plugin export
+ * Plugins should export this to enable full UI integration
+ */
+export interface MusicServicePlugin {
+  /** Plugin metadata */
+  metadata: MusicServiceMetadata;
+  /** Browser API implementation */
+  api: MusicServiceBrowserAPI;
+}

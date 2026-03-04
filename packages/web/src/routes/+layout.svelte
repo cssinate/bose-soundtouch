@@ -5,12 +5,18 @@
   import { getServiceStatus } from "$lib/api.js";
 
   let { children } = $props();
-  let spotifyEnabled = $state(false);
+  let services = $state<Array<{ id: string; name: string }>>([]);
 
   onMount(async () => {
     try {
       const status = await getServiceStatus();
-      spotifyEnabled = !!status.services?.spotify;
+      // Convert services object to array for iteration
+      if (status.services) {
+        services = Object.keys(status.services).map((id) => ({
+          id,
+          name: id.charAt(0).toUpperCase() + id.slice(1),
+        }));
+      }
     } catch (e) {
       console.error("Failed to get service status", e);
     }
@@ -25,9 +31,14 @@
     <h1>SoundTouch</h1>
     <nav>
       <a href="/" class:active={currentPath === "/"}>Speakers</a>
-      {#if spotifyEnabled}
-        <a href="/spotify" class:active={currentPath === "/spotify"}>Spotify</a>
-      {/if}
+      {#each services as service}
+        <a
+          href="/services/{service.id}"
+          class:active={currentPath === `/services/${service.id}`}
+        >
+          {service.name}
+        </a>
+      {/each}
     </nav>
   </header>
   <main>

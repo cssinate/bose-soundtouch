@@ -9,6 +9,9 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
+  "dependencies": {
+    "@soundtouch/spotify": "workspace:*"
+  },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3",
     "@sveltejs/kit": "^2",
