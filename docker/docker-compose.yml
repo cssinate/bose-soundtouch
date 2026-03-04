@@ -12,9 +12,9 @@ services:
       - PORT=3000
       - LOG_LEVEL=info
       # Speaker discovery (disable if not using host networking)
-      - DISCOVERY_ENABLED=true
-      # Manual speaker IPs (comma-separated host:port)
-      # - SPEAKER_HOSTS=192.168.1.100:8090,192.168.1.101:8090
+      - DISCOVERY_ENABLED=${DISCOVERY_ENABLED:-true}
+      # Manual speaker IPs (comma-separated host:port, optional)
+      - SPEAKER_HOSTS=${SPEAKER_HOSTS:-}
       # Spotify (optional — leave blank to disable)
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET:-}

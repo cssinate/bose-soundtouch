@@ -43,8 +43,21 @@ export async function createServer(opts: ServerOptions) {
       continue;
     }
 
+    let mod: Record<string, unknown>;
+
     try {
-      const mod = await import(`@soundtouch/${key}`);
+      mod = await import(`@soundtouch/${key}`);
+    } catch {
+      try {
+        const siblingPath = new URL(`../../${key}/dist/index.js`, import.meta.url);
+        mod = await import(siblingPath.href);
+      } catch {
+        logger.warn(`Plugin '${key}' configured but @soundtouch/${key} not available`);
+        continue;
+      }
+    }
+
+    try {
       if (!mod.plugin) {
         logger.debug(`@soundtouch/${key} has no server plugin — skipping`);
         continue;
@@ -56,12 +69,7 @@ export async function createServer(opts: ServerOptions) {
       loadedPlugins.add(pluginDef.name);
       logger.info(`Loaded plugin: ${pluginDef.name}`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      if (message.includes("Cannot find") || message.includes("ERR_MODULE_NOT_FOUND")) {
-        logger.warn(`Plugin '${key}' configured but @soundtouch/${key} not installed`);
-      } else {
-        logger.error(`Failed to load plugin '${key}'`, err);
-      }
+      logger.error(`Failed to load plugin '${key}'`, err);
     }
   }
 
