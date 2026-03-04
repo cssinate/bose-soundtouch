@@ -215,8 +215,12 @@ When adding a new service package (e.g., `@soundtouch/deezer`):
 
 1. Create the package in `packages/` following the existing structure
 2. Export a `plugin` object conforming to the `ServerPlugin` interface from `@soundtouch/core`
+3. Add a `COPY` line for the package's dist folder in the Dockerfile production stage:
+   ```dockerfile
+   COPY --from=build /app/packages/deezer/dist packages/deezer/dist
+   ```
 
-The Dockerfile uses glob patterns (`packages/*/package.json`, `packages/*/dist`) so new packages are picked up automatically with no Dockerfile changes required. The server discovers plugins at startup based on config keys: a `deezer:` section in the config triggers `import("@soundtouch/deezer")`.
+The package.json files are automatically picked up via glob patterns, so you only need to add one line for the dist folder.
 
 ## Credit
 
