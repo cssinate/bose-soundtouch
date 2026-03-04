@@ -1,29 +1,17 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import MusicService from "$lib/components/MusicService.svelte";
   import type { MusicServicePlugin } from "@soundtouch/core";
 
-  // Dynamic plugin loading based on route
-  // In a full implementation, this would dynamically import based on available plugins
-  let service: MusicServicePlugin | null = $state(null);
-  let error: string | null = $state(null);
+  import { spotify } from "@soundtouch/spotify";
 
-  $effect(() => {
-    const serviceId = $page.params.service;
-    
-    // Dynamically load the service plugin
-    loadService(serviceId);
-  });
+  const AVAILABLE_SERVICES: Record<string, MusicServicePlugin> = {
+    spotify,
+  };
 
-  async function loadService(serviceId: string) {
-    try {
-      const module = await import(`@soundtouch/${serviceId}`);
-      service = module[serviceId] as MusicServicePlugin;
-    } catch (err) {
-      console.error(`Failed to load service: ${serviceId}`, err);
-      error = `Service "${serviceId}" not found or not installed`;
-    }
-  }
+  const serviceId = $derived(page.params.service);
+  const service = $derived(AVAILABLE_SERVICES[serviceId ?? ''] || null);
+  const error = $derived(!service ? `Service "${serviceId}" not found` : null);
 </script>
 
 {#if error}

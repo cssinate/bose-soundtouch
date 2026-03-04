@@ -230,6 +230,15 @@ export class SoundTouch {
     await this.post(`/setPreset?preset=${presetId}`, xml);
   }
 
+  async playContentItem(contentItem: ContentItem): Promise<void> {
+    const xml = `<ContentItem source="${contentItem.source}" type="${contentItem.type}" ${contentItem.location ? `location="${contentItem.location}"` : ""} ${contentItem.sourceAccount ? `sourceAccount="${contentItem.sourceAccount}"` : ""}>
+      ${contentItem.itemName ? `<itemName>${contentItem.itemName}</itemName>` : ""}
+      ${contentItem.containerArt ? `<containerArt>${contentItem.containerArt}</containerArt>` : ""}
+    </ContentItem>`;
+    
+    await this.post("/select", xml);
+  }
+
   async play(): Promise<void> {
     await this.sendKey(KeyValue.PLAY);
   }

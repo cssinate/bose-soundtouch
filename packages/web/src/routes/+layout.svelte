@@ -1,7 +1,7 @@
-<script>
+<script lang="ts">
   import "../app.css";
   import { onMount } from "svelte";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { getServiceStatus } from "$lib/api.js";
 
   let { children } = $props();
@@ -21,20 +21,17 @@
       console.error("Failed to get service status", e);
     }
   });
-
-  // Reactive statement to get current path
-  let currentPath = $derived($page.url.pathname);
 </script>
 
 <div class="app">
   <header>
     <h1>SoundTouch</h1>
     <nav>
-      <a href="/" class:active={currentPath === "/"}>Speakers</a>
+      <a href="/" class:active={page.url.pathname === "/"}>Speakers</a>
       {#each services as service}
         <a
           href="/services/{service.id}"
-          class:active={currentPath === `/services/${service.id}`}
+          class:active={page.url.pathname === `/services/${service.id}`}
         >
           {service.name}
         </a>

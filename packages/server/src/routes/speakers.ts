@@ -103,6 +103,16 @@ export async function speakerRoutes(
     },
   );
 
+  app.post<{ Params: { id: string }; Body: { contentItem: any } }>(
+    "/api/speakers/:id/play",
+    async (request, reply) => {
+      const speaker = speakerManager.getSpeaker(request.params.id);
+      if (!speaker) return reply.code(404).send({ error: "Speaker not found" });
+      await speaker.playContentItem(request.body.contentItem);
+      return { ok: true };
+    },
+  );
+
   app.get<{ Params: { id: string } }>(
     "/api/speakers/:id/sources",
     async (request, reply) => {

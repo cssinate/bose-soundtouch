@@ -138,6 +138,10 @@ importers:
         version: 5.9.3
 
   packages/web:
+    dependencies:
+      '@soundtouch/spotify':
+        specifier: workspace:*
+        version: link:../spotify
     devDependencies:
       '@sveltejs/adapter-static':
         specifier: ^3

@@ -94,17 +94,19 @@ export interface MusicServiceBrowserAPI {
 
   /**
    * Play a context (playlist, album, artist)
+   * @param speakerId - Soundtouch speaker ID
    * @param uri - Service-specific URI for the content
-   * @param deviceId - Optional device identifier
+   * @param metadata - Optional metadata (name, image, etc.)
    */
-  playUri(uri: string, deviceId?: string): Promise<void>;
+  playUri(speakerId: string, uri: string, metadata?: Record<string, any>): Promise<void>;
 
   /**
    * Play a single track
+   * @param speakerId - Soundtouch speaker ID
    * @param uri - Service-specific URI for the track
-   * @param deviceId - Optional device identifier
+   * @param metadata - Optional metadata (name, image, etc.)
    */
-  playTrack(uri: string, deviceId?: string): Promise<void>;
+  playTrack(speakerId: string, uri: string, metadata?: Record<string, any>): Promise<void>;
 }
 
 /**

@@ -17,7 +17,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const body = await res.text();
     throw new Error(`API error ${res.status}: ${body}`);
   }
-  return res.json();
+  return res.json() as Promise<T>;
+}
+
+function spotifyUriToContentItem(uri: string, metadata?: Record<string, any>) {
+  return {
+    source: "SPOTIFY",
+    type: "uri",
+    location: uri,
+    sourceAccount: "",
+    itemName: metadata?.name || uri,
+    containerArt: metadata?.imageUrl,
+  }
 }
 
 // Standard MusicServiceBrowserAPI implementation
@@ -41,17 +52,19 @@ export async function getPlaylistTracks(playlistId: string): Promise<any> {
   return request(`/api/spotify/playlists/${playlistId}/tracks`);
 }
 
-export async function playUri(uri: string, deviceId?: string): Promise<void> {
-  await request("/api/spotify/player/play", {
+export async function playUri(speakerId: string, uri: string, metadata?: Record<string, any>): Promise<void> {
+  const contentItem = spotifyUriToContentItem(uri, metadata);
+  await request(`/api/speakers/${speakerId}/play`, {
     method: "POST",
-    body: JSON.stringify({ context_uri: uri, device_id: deviceId }),
+    body: JSON.stringify(contentItem),
   });
 }
 
-export async function playTrack(uri: string, deviceId?: string): Promise<void> {
-  await request("/api/spotify/player/play", {
+export async function playTrack(speakerId: string, uri: string, metadata?: Record<string, any>): Promise<void> {
+  const contentItem = spotifyUriToContentItem(uri, metadata);
+  await request(`/api/speakers/${speakerId}/play`, {
     method: "POST",
-    body: JSON.stringify({ uris: [uri], device_id: deviceId }),
+    body: JSON.stringify(contentItem),
   });
 }
 
