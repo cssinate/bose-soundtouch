@@ -56,7 +56,7 @@ export async function playUri(speakerId: string, uri: string, metadata?: Record<
   const contentItem = spotifyUriToContentItem(uri, metadata);
   await request(`/api/speakers/${speakerId}/play`, {
     method: "POST",
-    body: JSON.stringify(contentItem),
+    body: JSON.stringify({ contentItem }),
   });
 }
 
@@ -64,7 +64,7 @@ export async function playTrack(speakerId: string, uri: string, metadata?: Recor
   const contentItem = spotifyUriToContentItem(uri, metadata);
   await request(`/api/speakers/${speakerId}/play`, {
     method: "POST",
-    body: JSON.stringify(contentItem),
+    body: JSON.stringify({ contentItem }),
   });
 }
 
